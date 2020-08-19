@@ -1,9 +1,7 @@
 package ie.gmit.sw;
 
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.util.Scanner;
-
 import org.encog.Encog;
 import org.encog.ml.data.MLData;
 import org.encog.neural.networks.BasicNetwork;
@@ -107,8 +105,7 @@ public class Menu {
 					}
 
 				} while (loop);
-
-				while (!getKmerSize());
+				
 
 				predict(f);
 
@@ -138,12 +135,15 @@ public class Menu {
 			savedNetwork = Utilities.loadNeuralNetwork("./test.nn");
 			
 		} catch (Exception e) {
+			
 			System.err.println("No saved network, Please go back to step 1.");
 			
 			return;
 		}
 		
-		dataVector = new TextParser(savedNetwork.getInputCount(), kmer, f).parse();
+		int[]k = readKmer("./kmer.txt");
+		
+		dataVector = new TextParser(savedNetwork.getInputCount(),k , f).parse();
 
 		int resultIndex = -1;
 		double max = 0;
@@ -161,8 +161,13 @@ public class Menu {
 				resultIndex = i;
 			}
 		}
+		
+		if(k!=null) {
+			
+			System.err.println("Predicted Language is : " + langs[resultIndex]);
+		}
 
-		System.err.println("Predicted Language is : " + langs[resultIndex]);
+	
 
 	}
 
@@ -203,7 +208,44 @@ public class Menu {
 
 			i++;
 		}
+		
+		saveKmer(k);
+		
+		
 		return k;
+	}
+	
+	private int[] readKmer(String fname) {
+		
+		int[] size = null;
+		
+		try(
+				ObjectInputStream oi = new ObjectInputStream( new FileInputStream(new File(fname)));){
+
+			// Read objects
+			size = ( int[]) oi.readObject();
+			
+			
+		}catch(Exception e) {
+			
+		}
+		return size;
+	}
+		
+	
+	//serialize an array of kmer
+	private void saveKmer(int[]size) {
+	
+		try(
+				ObjectOutputStream o = new ObjectOutputStream(new FileOutputStream(new File("./kmer.txt")));
+
+
+			){	o.writeObject(size);
+			
+		}catch(Exception e) {
+			
+		}
+		
 	}
 
 	private boolean getKmerSize() {
